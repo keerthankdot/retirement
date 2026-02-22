@@ -31,7 +31,7 @@ const features = [
     title: "1,000 Healthy Weeks",
     description:
       "See exactly how many healthy, active weeks you have left. Make them count.",
-    href: "/retirement",
+    href: "/healthy-weeks",
   },
   {
     icon: PieChart,
