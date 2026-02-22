@@ -1,73 +1,53 @@
+"use client";
+
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FinancialProfile } from "@/components/financial-profile";
 import {
-  DollarSign,
   TrendingUp,
-  PiggyBank,
-  CreditCard,
-  Home,
-  Shield,
+  Clock,
+  Calculator,
   ArrowRight,
-  Plus
+  ArrowUp,
+  PieChart,
 } from "lucide-react";
 
-const sections = [
+const tools = [
   {
-    title: "Income",
-    description: "Salary, rental income, dividends, and other sources",
-    icon: DollarSign,
-    href: "/plan/income",
-    color: "text-[#4A7C59]",
-    bgColor: "bg-[#4A7C59]/10",
-  },
-  {
-    title: "Expenses",
-    description: "Track your spending by category",
-    icon: CreditCard,
-    href: "/plan/expenses",
+    title: "Spending Smile",
+    description: "See how your spending changes through Go-Go, Slow-Go, and No-Go years",
+    icon: TrendingUp,
+    href: "/spending-smile",
     color: "text-[#D4A853]",
     bgColor: "bg-[#D4A853]/10",
   },
   {
-    title: "Assets",
-    description: "401(k), IRA, Roth, brokerage, savings accounts",
-    icon: TrendingUp,
-    href: "/plan/assets",
+    title: "1,000 Healthy Weeks",
+    description: "Visualize your remaining healthy, active weeks",
+    icon: Clock,
+    href: "/healthy-weeks",
     color: "text-[#4A7C59]",
     bgColor: "bg-[#4A7C59]/10",
   },
   {
-    title: "Debts",
-    description: "Mortgage, loans, credit cards",
-    icon: PiggyBank,
-    href: "/plan/debts",
-    color: "text-[#C45B4A]",
-    bgColor: "bg-[#C45B4A]/10",
-  },
-  {
-    title: "Real Estate",
-    description: "Primary residence and rental properties",
-    icon: Home,
-    href: "/plan/real-estate",
-    color: "text-[#8B6F47]",
-    bgColor: "bg-[#8B6F47]/10",
-  },
-  {
-    title: "Insurance",
-    description: "Life, health, and long-term care coverage",
-    icon: Shield,
-    href: "/plan/insurance",
-    color: "text-[#2C3E2D]",
-    bgColor: "bg-[#2C3E2D]/10",
+    title: "Monte Carlo Simulator",
+    description: "Run 1,000 scenarios to find your success probability",
+    icon: Calculator,
+    href: "/retirement",
+    color: "text-[#4A7C59]",
+    bgColor: "bg-[#4A7C59]/10",
   },
 ];
 
 export default function PlanPage() {
+  const scrollToProfile = () => {
+    document.getElementById("financial-profile")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FAF6F1]">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-[#E0D8CC] bg-[#FAF6F1]/95 backdrop-blur supports-[backdrop-filter]:bg-[#FAF6F1]/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-lg bg-[#2C3E2D] flex items-center justify-center">
@@ -88,88 +68,100 @@ export default function PlanPage() {
 
       <main className="container py-8">
         <div className="max-w-4xl mx-auto">
+          {/* Page Header */}
           <div className="mb-8">
-            <h1 className="font-serif text-3xl font-extrabold text-[#2C3E2D]">Your Financial Picture</h1>
+            <h1 className="font-serif text-3xl font-extrabold text-[#2C3E2D]">
+              Your Retirement Roadmap
+            </h1>
             <p className="text-[#6B7B6E] mt-2 leading-relaxed">
-              Everything in one place — income, expenses, assets, debts, and more. No spreadsheets needed.
+              &ldquo;Let&apos;s start with what you know. The more complete your picture,
+              the more accurate your projections will be.&rdquo; — Azul
             </p>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <Card className="border-[#E0D8CC]">
-              <CardContent className="pt-6 text-center">
-                <div className="text-[11px] text-[#9CA89E] uppercase tracking-wide mb-1">Net Worth</div>
-                <div className="font-serif text-2xl font-bold text-[#4A7C59]">$0</div>
-              </CardContent>
-            </Card>
-            <Card className="border-[#E0D8CC]">
-              <CardContent className="pt-6 text-center">
-                <div className="text-[11px] text-[#9CA89E] uppercase tracking-wide mb-1">Monthly Income</div>
-                <div className="font-serif text-2xl font-bold text-[#2C3E2D]">$0</div>
-              </CardContent>
-            </Card>
-            <Card className="border-[#E0D8CC]">
-              <CardContent className="pt-6 text-center">
-                <div className="text-[11px] text-[#9CA89E] uppercase tracking-wide mb-1">Monthly Expenses</div>
-                <div className="font-serif text-2xl font-bold text-[#D4A853]">$0</div>
-              </CardContent>
-            </Card>
+          {/* Financial Profile (Accordion Sections) */}
+          <FinancialProfile />
+
+          {/* Divider with Azul Quote */}
+          <div className="my-8 text-center">
+            <div className="inline-block px-6 py-3 bg-[#D4A853]/10 rounded-full border border-[#D4A853]/20">
+              <p className="text-sm text-[#8B6F47] italic">
+                &ldquo;Now that we see the whole picture, let&apos;s explore what&apos;s possible.&rdquo;
+              </p>
+            </div>
           </div>
 
-          {/* Sections Grid */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {sections.map((section) => {
-              const Icon = section.icon;
-              return (
-                <Card key={section.title} className="border-[#E0D8CC] hover:border-[#4A7C59]/30 hover:shadow-md transition-all cursor-pointer group">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${section.bgColor}`}>
-                        <Icon className={`h-5 w-5 ${section.color}`} />
+          {/* Tool Cards */}
+          <div className="mb-8">
+            <h2 className="font-serif text-xl font-bold text-[#2C3E2D] mb-4">
+              Your Tools
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {tools.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <Link
+                    key={tool.title}
+                    href={tool.href}
+                    className="group relative rounded-2xl border border-[#E0D8CC] bg-white p-6 hover:border-[#4A7C59]/30 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${tool.bgColor}`}>
+                        <Icon className={`h-6 w-6 ${tool.color}`} />
                       </div>
-                      <ArrowRight className="h-4 w-4 text-[#9CA89E] group-hover:text-[#4A7C59] transition-colors" />
+                      <ArrowRight className="h-5 w-5 text-[#9CA89E] group-hover:text-[#4A7C59] group-hover:translate-x-1 transition-all" />
                     </div>
-                    <CardTitle className="font-serif text-lg text-[#2C3E2D] group-hover:text-[#4A7C59] transition-colors">
-                      {section.title}
-                    </CardTitle>
-                    <CardDescription className="text-[#6B7B6E]">
-                      {section.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center gap-2 text-sm text-[#9CA89E]">
-                      <Plus className="h-4 w-4" />
-                      <span>Add {section.title.toLowerCase()}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    <h3 className="font-serif text-lg font-bold text-[#2C3E2D] group-hover:text-[#4A7C59] transition-colors mb-1">
+                      {tool.title}
+                    </h3>
+                    <p className="text-sm text-[#6B7B6E] leading-relaxed">
+                      {tool.description}
+                    </p>
+                  </Link>
+                );
+              })}
+
+              {/* Your Complete Picture Card - Scrolls to profile */}
+              <button
+                onClick={scrollToProfile}
+                className="group relative rounded-2xl border border-[#E0D8CC] bg-white p-6 hover:border-[#4A7C59]/30 hover:shadow-md transition-all text-left"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#2C3E2D]/10">
+                    <PieChart className="h-6 w-6 text-[#2C3E2D]" />
+                  </div>
+                  <ArrowUp className="h-5 w-5 text-[#9CA89E] group-hover:text-[#4A7C59] group-hover:-translate-y-1 transition-all" />
+                </div>
+                <h3 className="font-serif text-lg font-bold text-[#2C3E2D] group-hover:text-[#4A7C59] transition-colors mb-1">
+                  Your Complete Picture
+                </h3>
+                <p className="text-sm text-[#6B7B6E] leading-relaxed">
+                  Income, expenses, assets, Social Security — all in one place
+                </p>
+              </button>
+            </div>
           </div>
 
           {/* CTA */}
-          <div className="mt-8 bg-[#F2ECE0] rounded-2xl p-6 border border-[#E8DCC8]">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-serif text-lg font-bold text-[#2C3E2D]">Ready to see your roadmap?</h3>
-                <p className="text-sm text-[#6B7B6E] mt-1">
-                  Once you&apos;ve added your financial details, run the Monte Carlo simulation.
-                </p>
-              </div>
-              <Button className="bg-[#4A7C59] hover:bg-[#3A6B49]" asChild>
-                <Link href="/retirement">
-                  Run Simulation
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+          <div className="bg-[#2C3E2D] rounded-2xl p-6 text-center">
+            <h3 className="font-serif text-xl font-bold text-white mb-2">
+              Ready to see your roadmap?
+            </h3>
+            <p className="text-sm text-[#FAF6F1]/70 mb-4">
+              Run the Monte Carlo simulation to see your retirement success probability.
+            </p>
+            <Button className="bg-[#D4A853] hover:bg-[#C4984A] text-white" asChild>
+              <Link href="/retirement">
+                Run Simulation
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8 bg-[#F2ECE0] mt-12">
+      <footer className="border-t border-[#E0D8CC] py-8 bg-[#F2ECE0] mt-12">
         <div className="container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
@@ -186,7 +178,10 @@ export default function PlanPage() {
                 Home
               </Link>
               <Link href="/retirement" className="hover:text-foreground transition-colors">
-                Calculator
+                Monte Carlo
+              </Link>
+              <Link href="/spending-smile" className="hover:text-foreground transition-colors">
+                Spending Smile
               </Link>
             </div>
           </div>
