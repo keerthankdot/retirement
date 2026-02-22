@@ -1,0 +1,627 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  dateOfBirth   DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Subscription
+  subscriptionTier  SubscriptionTier @default(FREE)
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  stripeCustomerId  String?
+
+  // Relations
+  accounts       Account[]
+  sessions       Session[]
+  financialPlans FinancialPlan[]
+  scenarios      Scenario[]
+
+  @@map("users")
+}
+
+enum SubscriptionTier {
+  FREE
+  PLANNER_PLUS
+  ADVISORY
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// FINANCIAL PLAN (CORE)
+// ============================================
+
+model FinancialPlan {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String   @default("My Financial Plan")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Planning Parameters
+  currentAge          Int?
+  retirementAge       Int?
+  lifeExpectancy      Int?
+  inflationAssumption Decimal @default(2.5) @db.Decimal(5, 2)
+
+  // Location (for tax calculations)
+  state        String? // US state code
+  filingStatus FilingStatus @default(SINGLE)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Financial Data
+  incomes              Income[]
+  expenses             Expense[]
+  assets               Asset[]
+  debts                Debt[]
+  realEstateProperties RealEstate[]
+  insurances           Insurance[]
+
+  // Social Security & Retirement
+  socialSecurityBenefits SocialSecurityBenefit[]
+  pensions               Pension[]
+  annuities              Annuity[]
+
+  // Analysis
+  scenarios         Scenario[]
+  monteCarloResults MonteCarloResult[]
+
+  @@map("financial_plans")
+}
+
+// ============================================
+// INCOME
+// ============================================
+
+model Income {
+  id          String      @id @default(cuid())
+  planId      String
+  name        String
+  type        IncomeType
+  amount      Decimal     @db.Decimal(12, 2)
+  frequency   Frequency   @default(MONTHLY)
+  startDate   DateTime?
+  endDate     DateTime?
+  growthRate  Decimal     @default(0) @db.Decimal(5, 2)
+  isTaxable   Boolean     @default(true)
+  taxCategory TaxCategory @default(ORDINARY_INCOME)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("incomes")
+}
+
+enum IncomeType {
+  SALARY
+  SELF_EMPLOYMENT
+  BONUS
+  RENTAL
+  DIVIDEND
+  INTEREST
+  CAPITAL_GAINS
+  PENSION
+  SOCIAL_SECURITY
+  ANNUITY
+  OTHER
+}
+
+enum Frequency {
+  WEEKLY
+  BI_WEEKLY
+  SEMI_MONTHLY
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUALLY
+  ANNUALLY
+  ONE_TIME
+}
+
+enum TaxCategory {
+  ORDINARY_INCOME
+  QUALIFIED_DIVIDENDS
+  LONG_TERM_CAPITAL_GAINS
+  SHORT_TERM_CAPITAL_GAINS
+  TAX_EXEMPT
+  TAX_DEFERRED
+}
+
+// ============================================
+// EXPENSES
+// ============================================
+
+model Expense {
+  id                String          @id @default(cuid())
+  planId            String
+  name              String
+  category          ExpenseCategory
+  amount            Decimal         @db.Decimal(12, 2)
+  frequency         Frequency       @default(MONTHLY)
+  startDate         DateTime?
+  endDate           DateTime?
+  inflationAdjusted Boolean         @default(true)
+  isEssential       Boolean         @default(true)
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+enum ExpenseCategory {
+  HOUSING
+  UTILITIES
+  FOOD
+  TRANSPORTATION
+  HEALTHCARE
+  INSURANCE
+  ENTERTAINMENT
+  TRAVEL
+  EDUCATION
+  CHILDCARE
+  DEBT_PAYMENT
+  TAXES
+  CHARITABLE
+  PERSONAL
+  OTHER
+}
+
+// ============================================
+// ASSETS
+// ============================================
+
+model Asset {
+  id             String       @id @default(cuid())
+  planId         String
+  name           String
+  type           AssetType
+  currentValue   Decimal      @db.Decimal(14, 2)
+  purchaseDate   DateTime?
+  costBasis      Decimal?     @db.Decimal(14, 2)
+  expectedReturn Decimal      @default(7) @db.Decimal(5, 2)
+  volatility     Decimal?     @db.Decimal(5, 2)
+
+  // Account specific
+  accountType   AccountType?
+  contributions Decimal?     @db.Decimal(12, 2)
+  employerMatch Decimal?     @db.Decimal(5, 2)
+
+  // Allocation
+  stockAllocation Decimal @default(60) @db.Decimal(5, 2)
+  bondAllocation  Decimal @default(30) @db.Decimal(5, 2)
+  cashAllocation  Decimal @default(10) @db.Decimal(5, 2)
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+}
+
+enum AssetType {
+  CASH
+  CHECKING
+  SAVINGS
+  CD
+  MONEY_MARKET
+  BROKERAGE
+  RETIREMENT_401K
+  RETIREMENT_403B
+  RETIREMENT_IRA
+  RETIREMENT_ROTH_IRA
+  RETIREMENT_ROTH_401K
+  RETIREMENT_SEP_IRA
+  RETIREMENT_SIMPLE_IRA
+  HSA
+  CRYPTO
+  COLLECTIBLES
+  BUSINESS_EQUITY
+  OTHER
+}
+
+enum AccountType {
+  TAXABLE
+  TAX_DEFERRED
+  TAX_FREE
+}
+
+// ============================================
+// DEBTS
+// ============================================
+
+model Debt {
+  id                   String   @id @default(cuid())
+  planId               String
+  name                 String
+  type                 DebtType
+  principalBalance     Decimal  @db.Decimal(14, 2)
+  interestRate         Decimal  @db.Decimal(5, 3)
+  minimumPayment       Decimal  @db.Decimal(10, 2)
+  startDate            DateTime?
+  termMonths           Int?
+  isInterestDeductible Boolean  @default(false)
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("debts")
+}
+
+enum DebtType {
+  MORTGAGE
+  HOME_EQUITY
+  AUTO
+  STUDENT
+  CREDIT_CARD
+  PERSONAL
+  MEDICAL
+  OTHER
+}
+
+// ============================================
+// REAL ESTATE
+// ============================================
+
+model RealEstate {
+  id               String         @id @default(cuid())
+  planId           String
+  name             String
+  type             RealEstateType
+  currentValue     Decimal        @db.Decimal(14, 2)
+  purchasePrice    Decimal?       @db.Decimal(14, 2)
+  purchaseDate     DateTime?
+  appreciationRate Decimal        @default(3) @db.Decimal(5, 2)
+
+  // Primary Residence or Rental
+  isRental        Boolean  @default(false)
+  monthlyRent     Decimal? @db.Decimal(10, 2)
+  monthlyExpenses Decimal? @db.Decimal(10, 2)
+  vacancyRate     Decimal? @db.Decimal(5, 2)
+
+  // Mortgage (if applicable)
+  mortgageBalance       Decimal? @db.Decimal(14, 2)
+  mortgageRate          Decimal? @db.Decimal(5, 3)
+  mortgagePayment       Decimal? @db.Decimal(10, 2)
+  mortgageTermRemaining Int?
+
+  // Sale Plans
+  plannedSaleYear Int?
+  saleProceeds    Decimal? @db.Decimal(14, 2)
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("real_estate")
+}
+
+enum RealEstateType {
+  PRIMARY_RESIDENCE
+  VACATION_HOME
+  RENTAL_SINGLE_FAMILY
+  RENTAL_MULTI_FAMILY
+  COMMERCIAL
+  LAND
+  OTHER
+}
+
+// ============================================
+// SOCIAL SECURITY
+// ============================================
+
+model SocialSecurityBenefit {
+  id                String   @id @default(cuid())
+  planId            String
+  personName        String
+  birthDate         DateTime
+  fullRetirementAge Int
+  estimatedPIA      Decimal  @db.Decimal(10, 2)
+  claimingAge       Int
+  estimatedBenefit  Decimal  @db.Decimal(10, 2)
+  earningsHistory   Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("social_security_benefits")
+}
+
+// ============================================
+// PENSIONS & ANNUITIES
+// ============================================
+
+model Pension {
+  id               String    @id @default(cuid())
+  planId           String
+  name             String
+  employerName     String?
+  estimatedBenefit Decimal   @db.Decimal(10, 2)
+  frequency        Frequency @default(MONTHLY)
+  startAge         Int
+  hasCOLA          Boolean   @default(false)
+  colaRate         Decimal?  @db.Decimal(5, 2)
+  survivorBenefit  Decimal?  @db.Decimal(5, 2)
+  lumpSumOption    Decimal?  @db.Decimal(14, 2)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("pensions")
+}
+
+model Annuity {
+  id              String      @id @default(cuid())
+  planId          String
+  name            String
+  type            AnnuityType
+  currentValue    Decimal     @db.Decimal(14, 2)
+  guaranteedRate  Decimal?    @db.Decimal(5, 2)
+  payoutStartAge  Int?
+  payoutAmount    Decimal?    @db.Decimal(10, 2)
+  payoutFrequency Frequency   @default(MONTHLY)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("annuities")
+}
+
+enum AnnuityType {
+  FIXED
+  VARIABLE
+  INDEXED
+  IMMEDIATE
+  DEFERRED
+}
+
+// ============================================
+// INSURANCE
+// ============================================
+
+model Insurance {
+  id               String        @id @default(cuid())
+  planId           String
+  type             InsuranceType
+  provider         String?
+  policyNumber     String?
+  premium          Decimal       @db.Decimal(10, 2)
+  premiumFrequency Frequency     @default(MONTHLY)
+  coverageAmount   Decimal?      @db.Decimal(14, 2)
+  deductible       Decimal?      @db.Decimal(10, 2)
+  startDate        DateTime?
+  endDate          DateTime?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("insurances")
+}
+
+enum InsuranceType {
+  HEALTH
+  DENTAL
+  VISION
+  LIFE_TERM
+  LIFE_WHOLE
+  LIFE_UNIVERSAL
+  DISABILITY_SHORT_TERM
+  DISABILITY_LONG_TERM
+  LONG_TERM_CARE
+  AUTO
+  HOME
+  UMBRELLA
+  OTHER
+}
+
+// ============================================
+// SCENARIOS & WHAT-IF
+// ============================================
+
+model Scenario {
+  id                 String   @id @default(cuid())
+  planId             String
+  userId             String
+  name               String
+  description        String?
+  isBaseline         Boolean  @default(false)
+  modifications      Json
+  results            Json?
+  successProbability Decimal? @db.Decimal(5, 2)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("scenarios")
+}
+
+// ============================================
+// MONTE CARLO RESULTS
+// ============================================
+
+model MonteCarloResult {
+  id                 String   @id @default(cuid())
+  planId             String
+  scenarioId         String?
+  runDate            DateTime @default(now())
+  simulationCount    Int      @default(1000)
+  successRate        Decimal  @db.Decimal(5, 2)
+  medianEndingWealth Decimal  @db.Decimal(14, 2)
+  percentile10       Decimal  @db.Decimal(14, 2)
+  percentile25       Decimal  @db.Decimal(14, 2)
+  percentile50       Decimal  @db.Decimal(14, 2)
+  percentile75       Decimal  @db.Decimal(14, 2)
+  percentile90       Decimal  @db.Decimal(14, 2)
+  yearlyProjections  Json
+  assumptions        Json
+
+  plan FinancialPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("monte_carlo_results")
+}
+
+// ============================================
+// TAX DATA
+// ============================================
+
+model TaxBracket {
+  id           String       @id @default(cuid())
+  year         Int
+  filingStatus FilingStatus
+  bracketStart Decimal      @db.Decimal(12, 2)
+  bracketEnd   Decimal?     @db.Decimal(12, 2)
+  rate         Decimal      @db.Decimal(5, 2)
+  jurisdiction String       @default("federal")
+
+  @@unique([year, filingStatus, bracketStart, jurisdiction])
+  @@map("tax_brackets")
+}
+
+enum FilingStatus {
+  SINGLE
+  MARRIED_FILING_JOINTLY
+  MARRIED_FILING_SEPARATELY
+  HEAD_OF_HOUSEHOLD
+  QUALIFYING_WIDOW
+}
+
+model StateTaxRule {
+  id                    String  @id @default(cuid())
+  stateCode             String
+  year                  Int
+  hasIncomeTax          Boolean
+  hasCapitalGainsTax    Boolean
+  retirementIncomeTaxed Boolean
+  socialSecurityTaxed   Boolean
+  pensionTaxed          Boolean
+  standardDeduction     Json
+  brackets              Json
+  specialRules          Json?
+
+  @@unique([stateCode, year])
+  @@map("state_tax_rules")
+}
+
+// ============================================
+// CONTENT & EDUCATION
+// ============================================
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  excerpt       String?
+  content       String    @db.Text
+  featuredImage String?
+  author        String?
+  category      String?
+  tags          String[]
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isPublished   Boolean   @default(false)
+
+  @@map("blog_posts")
+}
+
+model Resource {
+  id           String            @id @default(cuid())
+  slug         String            @unique
+  title        String
+  description  String?
+  type         ResourceType
+  content      String?           @db.Text
+  fileUrl      String?
+  thumbnailUrl String?
+  category     String?
+  isPremium    Boolean           @default(false)
+  requiredTier SubscriptionTier?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@map("resources")
+}
+
+enum ResourceType {
+  CALCULATOR
+  GUIDE
+  CHECKLIST
+  WEBINAR
+  VIDEO
+  WORKSHEET
+}

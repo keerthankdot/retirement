@@ -1,26 +1,251 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-playfair);
   --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Azul Wells Brand Colors */
+  --color-forest: var(--forest);
+  --color-forest-light: var(--forest-light);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-sage: var(--sage);
+  --color-sage-light: var(--sage-light);
+  --color-sand: var(--sand);
+  --color-sand-light: var(--sand-light);
+  --color-warm: var(--warm);
+  --color-parchment: var(--parchment);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.875rem;
+
+  /* Azul Wells Brand Colors */
+  --parchment: #FAF6F1;
+  --forest: #2C3E2D;
+  --forest-light: #3A5240;
+  --gold: #D4A853;
+  --gold-light: #E8D5A0;
+  --gold-dark: #B8912E;
+  --sage: #4A7C59;
+  --sage-light: #E8F0EA;
+  --sage-dark: #2C5E3A;
+  --sand: #E8DCC8;
+  --sand-light: #F2ECE0;
+  --warm: #8B6F47;
+  --terracotta: #C45B4A;
+  --terracotta-light: #F5E0DC;
+
+  /* Theme colors using Azul Wells palette */
+  --background: #FAF6F1;
+  --foreground: #2C3E2D;
+  --card: #FFFFFF;
+  --card-foreground: #2C3E2D;
+  --popover: #FFFFFF;
+  --popover-foreground: #2C3E2D;
+  --primary: #4A7C59;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2ECE0;
+  --secondary-foreground: #2C3E2D;
+  --muted: #F5EFE6;
+  --muted-foreground: #6B7B6E;
+  --accent: #D4A853;
+  --accent-foreground: #2C3E2D;
+  --destructive: #C45B4A;
+  --border: #E0D8CC;
+  --input: #E0D8CC;
+  --ring: #4A7C59;
+
+  /* Chart colors */
+  --chart-1: #4A7C59;
+  --chart-2: #D4A853;
+  --chart-3: #2C3E2D;
+  --chart-4: #C45B4A;
+  --chart-5: #8B6F47;
+
+  /* Sidebar */
+  --sidebar: #2C3E2D;
+  --sidebar-foreground: #FAF6F1;
+  --sidebar-primary: #D4A853;
+  --sidebar-primary-foreground: #2C3E2D;
+  --sidebar-accent: #3A5240;
+  --sidebar-accent-foreground: #FAF6F1;
+  --sidebar-border: #3A5240;
+  --sidebar-ring: #D4A853;
+}
+
+.dark {
+  --background: #1A2A1B;
+  --foreground: #FAF6F1;
+  --card: #2C3E2D;
+  --card-foreground: #FAF6F1;
+  --popover: #2C3E2D;
+  --popover-foreground: #FAF6F1;
+  --primary: #D4A853;
+  --primary-foreground: #2C3E2D;
+  --secondary: #3A5240;
+  --secondary-foreground: #FAF6F1;
+  --muted: #3A5240;
+  --muted-foreground: #9CA89E;
+  --accent: #D4A853;
+  --accent-foreground: #2C3E2D;
+  --destructive: #C45B4A;
+  --border: #3A5240;
+  --input: #3A5240;
+  --ring: #D4A853;
+
+  /* Chart colors for dark mode */
+  --chart-1: #D4A853;
+  --chart-2: #4A7C59;
+  --chart-3: #E8D5A0;
+  --chart-4: #C45B4A;
+  --chart-5: #8B6F47;
+
+  /* Sidebar dark */
+  --sidebar: #1A2A1B;
+  --sidebar-foreground: #FAF6F1;
+  --sidebar-primary: #D4A853;
+  --sidebar-primary-foreground: #2C3E2D;
+  --sidebar-accent: #3A5240;
+  --sidebar-accent-foreground: #FAF6F1;
+  --sidebar-border: #3A5240;
+  --sidebar-ring: #D4A853;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-playfair), Georgia, serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-serif {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+
+  .font-sans {
+    font-family: var(--font-source-sans), 'Segoe UI', sans-serif;
+  }
+
+  .gradient-forest {
+    background: linear-gradient(135deg, #2C3E2D 0%, #3A5240 100%);
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, #E8D5A0 0%, #D4A853 100%);
+  }
+
+  .dark-panel {
+    background: linear-gradient(135deg, #2C3E2D, #3A5240);
+    position: relative;
+  }
+
+  .dark-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle at top right, rgba(212, 168, 83, 0.15), transparent 70%);
+    pointer-events: none;
+  }
+}
+
+/* Container centering */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1400px;
+  }
 }
